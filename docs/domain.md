@@ -5,16 +5,21 @@ classDiagram
         + schema() C
     }
 
+    class FilterableTable~C~ {
+        <<interface>>
+    }
+    FilterableTable ..|> Table
+
     class DbTable~C~ {
         -name String
         -schema C
     }
-    DbTable ..|> Table
+    DbTable ..|> FilterableTable
 ```
 
 ```mermaid
 classDiagram
-    class Table~C~ {
+    class FilterableTable~C~ {
         <<interface>>
     }
 
@@ -37,14 +42,14 @@ classDiagram
         -right Table~RC~
         -rule JoinRule
     }
-    JoinedTable ..|> Table
+    JoinedTable ..|> FilterableTable
     JoinedTable --> JoinRule
     JoinedTable --> JoinedSchema
 ```
 
 ```mermaid
 classDiagram
-    class Table~C~ {
+    class FilterableTable~C~ {
         <<interface>>
     }
 
@@ -58,11 +63,10 @@ classDiagram
     And ..|> Condition
 
     class ConditionFilteredTable~C~ {
-        -origin Table~C~
+        -origin FilterableTable~C~
         -condition Condition
     }
-    %% надо сделать так, чтобы WHERE нельзя было писать после GROUP BY
-    ConditionFilteredTable ..|> Table
+    ConditionFilteredTable ..|> FilterableTable
     ConditionFilteredTable --> Condition
 ```
 
