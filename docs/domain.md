@@ -233,6 +233,25 @@ classDiagram
 
 ```mermaid
 classDiagram
+    class ColumnAssignment {
+        <<interface>>
+    }
+    
+    class ColumnValue {
+        -column Column
+        -value Value
+    }
+    ColumnValue ..|> ColumnAssignment
+    
+    class ColumnExpression {
+        -column Column
+        -expression Expression
+    }
+    ColumnExpression ..|> ColumnAssignment
+```
+
+```mermaid
+classDiagram
     class Table~C~ {
         <<interface>>
     }
@@ -249,18 +268,6 @@ classDiagram
         <<interface>>
     }
 
-    class ColumnValue {
-        -column Column
-        -value Value
-    }
-    ColumnValue ..|> ColumnAssignment
-
-    class ColumnExpression {
-        -column Column
-        -expression Expression
-    }
-    ColumnExpression ..|> ColumnAssignment
-
     class UpdateDbQuery~C~ {
         -table Table~C~
         -assignments List~ColumnAssignment~
@@ -270,6 +277,29 @@ classDiagram
     UpdateDbQuery --> Table
     UpdateDbQuery --> ColumnAssignment
     UpdateDbQuery --> Condition
+```
+    
+```mermaid
+classDiagram
+    class Table~C~ {
+        <<interface>>
+    }
+
+    class Query~C~ {
+        <<interface>>
+    }
+
+    class Condition {
+        <<interface>>
+    }
+
+    class DeleteDbQuery~C~ {
+        -table Table~C~
+        -condition Condition
+    }
+    DeleteDbQuery ..|> Query
+    DeleteDbQuery --> Table
+    DeleteDbQuery --> Condition
 ```
 
 # Пример запроса кода
@@ -367,4 +397,20 @@ Query<?> update = new UpdateDbQuery<>(
 ### Итоговый SQL
 ```sql
 UPDATE users SET status = 'inactive' WHERE id = 1
+```
+
+## Delete query
+
+```java
+DbTable<UsersSchema> users = new DbTable<>("users", new UsersSchema());
+
+Query<?> delete = new DeleteDbQuery<>(
+    users,
+    new Equals(users.schema().id, new NumberLiteral(1))
+);
+```
+
+### Итоговый SQL
+```sql
+DELETE FROM users WHERE id = 1
 ```
