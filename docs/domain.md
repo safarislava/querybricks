@@ -140,53 +140,53 @@ classDiagram
         <<interface>>
     }
 
-    class Column {
+    class Column~T~ {
         <<interface>>
     }
     Column ..|> Expression
 
-    class DbColumn {
+    class DbColumn~T~ {
         -name String
     }
-    DbColumn ..|> Column
+    DbColumn ..|> Column~T~
 
     class Table {
         <<interface>>
     }
 
-    class TableColumn {
+    class TableColumn~T~ {
         -table Table
-        -column Column
+        -column Column~T~
     }
-    TableColumn ..|> Column
+    TableColumn ..|> Column~T~
     TableColumn --> Column
     TableColumn --> Table
 
-    class AggregatedColumn {
+    class AggregatedColumn~T~ {
         <<interface>>
     }
-    AggregatedColumn ..|> Column
+    AggregatedColumn ..|> Column~T~
 
-    class Sum {
-        -column Column
+    class Sum~T~ {
+        -column Column~T~
     }
-    Sum ..|> AggregatedColumn
+    Sum ..|> AggregatedColumn~T~
 
-    class Count {
-        -column Column
+    class Count~T~ {
+        -column Column~T~
     }
-    Count ..|> AggregatedColumn
+    Count ..|> AggregatedColumn~T~
 
-    class Avg {
-        -column Column
+    class Avg~T~ {
+        -column Column~T~
     }
-    Avg ..|> AggregatedColumn
+    Avg ..|> AggregatedColumn~T~
 
-    class AliasedColumn {
-        -origin Column
+    class AliasedColumn~T~ {
+        -origin Column~T~
         -alias String
     }
-    AliasedColumn ..|> Column
+    AliasedColumn ..|> Column~T~
 
     class Columns {
         <<interface>>
@@ -394,41 +394,86 @@ classDiagram
     DeleteQuery --> Condition
 ```
 
+```mermaid
+classDiagram
+    class Query {
+        <<interface>>
+    }
+
+    class Database {
+        <<interface>>
+        + execute(String)
+        + value(Query, Factory~T~) List~T~
+    }
+    Database --> Query
+    Database --> Factory
+
+    class Rows {
+        <<interface>>
+        + list() List~Row~
+    }
+
+    class Column~T~ {
+        <<interface>>
+    }
+
+    class Row {
+        <<interface>>
+        + value(Column~T~) T
+    }
+    Row --> Column
+
+    class Factory~T~ {
+        <<interface>>
+        + product(Row) T
+    }
+
+    class QueryResult~T~ {
+        -rows Rows
+        -factory Factory~T~
+        + value() List~T~
+    }
+    QueryResult --> Rows
+    QueryResult --> Factory
+```
+
 # Пример кода
 ## Схема данных
 
 ```java
 interface UsersTable extends FilterableTable {
-    Column id();
-    Column username();
-    Column status();
-    Column createdAt();
+    Column<Long> id();
+    Column<String> username();
+    Column<String> status();
+    Column<Instant> createdAt();
 }
 
 interface OrdersTable extends FilterableTable {
-    Column userId();
-    Column amount();
+    Column<Long> userId();
+    Column<BigDecimal> amount();
 }
 
 class DbUsersTable implements UsersTable {
     private final String name;
     DbUsersTable(String name) { this.name = name; }
-    public Column id()        { return new TableColumn(this, new DbColumn("id")); }
-    public Column username()  { return new TableColumn(this, new DbColumn("username")); }
-    public Column status()    { return new TableColumn(this, new DbColumn("status")); }
-    public Column createdAt() { return new TableColumn(this, new DbColumn("created_at")); }
+    public Column<Long> id()        { return new TableColumn<>(this, new DbColumn<>("id")); }
+    public Column<String> username()  { return new TableColumn<>(this, new DbColumn<>("username")); }
+    public Column<String> status()    { return new TableColumn<>(this, new DbColumn<>("status")); }
+    public Column<Instant> createdAt() { return new TableColumn<>(this, new DbColumn<>("created_at")); }
 }
 
 class DbOrdersTable implements OrdersTable {
     private final String name;
     DbOrdersTable(String name) { this.name = name; }
-    public Column userId() { return new TableColumn(this, new DbColumn("user_id")); }
-    public Column amount() { return new TableColumn(this, new DbColumn("amount")); }
+    public Column<Long> userId() { return new TableColumn<>(this, new DbColumn<>("user_id")); }
+    public Column<BigDecimal> amount() { return new TableColumn<>(this, new DbColumn<>("amount")); }
 }
 ```
 
 ## Запрос SELECT
 ```java
+record UserOrderSummary(long id, String username, BigDecimal amount) {}
+
 UsersTable  users  = new DbUsersTable("users");
 OrdersTable orders = new DbOrdersTable("orders");
 
@@ -445,14 +490,19 @@ var filtered = new FilteredTable<>(
 
 var limited = new LimitedTable<>(filtered, 10);
 
+Column<Long>       id       = limited.origin().origin().left().id();
+Column<String>     username = limited.origin().origin().left().username();
+Column<BigDecimal> amount   = limited.origin().origin().right().amount();
+
+Factory<UserOrderSummary> factory = row ->
+    new UserOrderSummary(row.value(id), row.value(username), row.value(amount));
+
 Query query = new SelectQuery(
-    new ColumnsSelection(
-        limited.origin().origin().left().id(),
-        limited.origin().origin().left().username(),
-        limited.origin().origin().right().amount()
-    ),
+    new ColumnsSelection(id, username, amount),
     limited
 );
+
+List<UserOrderSummary> result = database.value(query, factory);
 ```
 
 ### Итоговый SQL
@@ -467,6 +517,8 @@ LIMIT 10
 ## Запрос SELECT c агрегирующей функцией
 
 ```java
+record StatusTotal(String status, BigDecimal totalAmount) {}
+
 UsersTable  users  = new DbUsersTable("users");
 OrdersTable orders = new DbOrdersTable("orders");
 
@@ -478,13 +530,18 @@ var joined = new JoinedTable<>(
 
 var grouped = new GroupedTable<>(joined, joined.left().status());
 
+Column<String>     status      = grouped.origin().left().status();
+Column<BigDecimal> totalAmount = new AliasedColumn<>(new Sum<>(grouped.origin().right().amount()), "total_amount");
+
+Factory<StatusTotal> factory = row ->
+    new StatusTotal(row.value(status), row.value(totalAmount));
+
 Query query = new SelectQuery(
-    new ColumnsSelection(
-        grouped.origin().left().status(),
-        new AliasedColumn(new Sum(grouped.origin().right().amount()), "total_amount")
-    ),
+    new ColumnsSelection(status, totalAmount),
     grouped
 );
+
+List<StatusTotal> result = database.value(query, factory);
 ```
 
 ### Итоговый SQL
@@ -511,6 +568,8 @@ Query insert = new InsertQuery(
         )
     )
 );
+
+database.execute(insert.sql());
 ```
 
 ### Итоговый SQL
@@ -530,6 +589,8 @@ Query update = new UpdateQuery(
     ),
     new Equals(users.id(), new NumberLiteral(1))
 );
+
+database.execute(update.sql());
 ```
 
 ### Итоговый SQL
@@ -546,6 +607,8 @@ Query delete = new DeleteQuery(
     users,
     new Equals(users.id(), new NumberLiteral(1))
 );
+
+database.execute(delete.sql());
 ```
 
 ### Итоговый SQL
