@@ -461,15 +461,16 @@ classDiagram
     class Database {
         <<interface>>
         + execute(String)
-        + value(Query, Factory~T~) List~T~
+        + selection(Query) Rows
     }
     Database --> Query
-    Database --> Factory
+    Database --> Rows
 
     class Rows {
         <<interface>>
         + list() List~Row~
     }
+    Rows --> Row
 
     class Column~T~ {
         <<interface>>
@@ -480,17 +481,4 @@ classDiagram
         + value(Column~T~) T
     }
     Row --> Column
-
-    class Factory~T~ {
-        <<interface>>
-        + product(Row) T
-    }
-
-    class QueryResult~T~ {
-        -rows Rows
-        -factory Factory~T~
-        + value() List~T~
-    }
-    QueryResult --> Rows
-    QueryResult --> Factory
 ```

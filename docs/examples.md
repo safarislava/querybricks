@@ -33,8 +33,6 @@ class DbOrdersTable implements OrdersTable {
 
 ## Запрос SELECT
 ```java
-record UserOrderSummary(long id, String username, BigDecimal amount) {}
-
 UsersTable  users  = new DbUsersTable("users");
 OrdersTable orders = new DbOrdersTable("orders");
 
@@ -55,15 +53,17 @@ Column<Long>       id       = limited.origin().origin().left().id();
 Column<String>     username = limited.origin().origin().left().username();
 Column<BigDecimal> amount   = limited.origin().origin().right().amount();
 
-Factory<UserOrderSummary> factory = row ->
-    new UserOrderSummary(row.value(id), row.value(username), row.value(amount));
-
 Query query = new SelectQuery(
     new ColumnsSelection(id, username, amount),
     limited
 );
 
-List<UserOrderSummary> result = database.value(query, factory);
+Rows result = database.selection(query);
+for (Row row : result.list()) {
+    Long userId = row.value(id);
+    String name = row.value(username);
+    BigDecimal total = row.value(amount);
+}
 ```
 
 ### Итоговый SQL
@@ -78,8 +78,6 @@ LIMIT 10
 ## Запрос SELECT c агрегирующей функцией
 
 ```java
-record StatusTotal(String status, BigDecimal totalAmount) {}
-
 UsersTable  users  = new DbUsersTable("users");
 OrdersTable orders = new DbOrdersTable("orders");
 
@@ -94,15 +92,16 @@ var grouped = new GroupedTable<>(joined, joined.left().status());
 Column<String>     status      = grouped.origin().left().status();
 Column<BigDecimal> totalAmount = new AliasedColumn<>(new Sum<>(grouped.origin().right().amount()), "total_amount");
 
-Factory<StatusTotal> factory = row ->
-    new StatusTotal(row.value(status), row.value(totalAmount));
-
 Query query = new SelectQuery(
     new ColumnsSelection(status, totalAmount),
     grouped
 );
 
-List<StatusTotal> result = database.value(query, factory);
+Rows result = database.selection(query);
+for (Row row : result.list()) {
+    String userStatus = row.value(status);
+    BigDecimal total = row.value(totalAmount);
+}
 ```
 
 ### Итоговый SQL
