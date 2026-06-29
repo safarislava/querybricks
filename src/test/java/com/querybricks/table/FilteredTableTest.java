@@ -5,7 +5,7 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-public class FilteredQueryTest {
+public class FilteredTableTest {
     private final FilteredTable<FakeFilterableTable> table = new FilteredTable<>(
         new FakeFilterableTable("users"),
         new FakeCondition("users.id = 1")
@@ -15,7 +15,7 @@ public class FilteredQueryTest {
     void testSql() {
         MatcherAssert.assertThat(
             table.sql(),
-            Matchers.equalTo("users WHERE id = 1")
+            Matchers.equalTo("users WHERE users.id = 1")
         );
     }
 
