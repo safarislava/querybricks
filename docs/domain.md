@@ -119,9 +119,11 @@ classDiagram
     FilteredTable --> Condition
 
     class SubqueryTable~T extends FilterableTable~ {
+        -origin T
         -query Query
     }
     SubqueryTable --> Query
+    SubqueryTable ..|> WrapedTable~T~
     SubqueryTable ..|> FilterableTable
 ```
 

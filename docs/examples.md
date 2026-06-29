@@ -175,3 +175,53 @@ database.execute(delete.sql());
 ```sql
 DELETE FROM users WHERE id = 1
 ```
+
+## Подзапросы
+
+```java
+UsersTable users = new DbUsersTable("users");
+OrdersTable orders = new DbOrdersTable("orders");
+
+Query filteredQuery = new SelectQuery(
+    new ColumnsSelection(orders.userId(), orders.amount()),
+    new FilteredTable<>(
+        orders,
+        new GreaterThan(orders.amount(), new NumberLiteral(1000))
+    )
+);
+
+SubqueryTable<OrdersTable> subquery = new SubqueryTable<>(orders, filteredQuery);
+
+Query existsSubquery = new SelectQuery(
+    new ColumnsSelection(new NumberLiteral(1)),
+    new FilteredTable<>(
+        subquery,
+        new Equals(subquery.origin().userId(), users.id())
+    )
+);
+
+Query query = new SelectQuery(
+    new ColumnsSelection(users.username()),
+    new FilteredTable<>(
+        users,
+        new Exists(existsSubquery)
+    )
+);
+
+database.selection(query);
+```
+
+### Итоговый SQL
+```sql
+SELECT username 
+FROM users 
+WHERE EXISTS (
+    SELECT 1 
+    FROM (
+        SELECT orders.user_id, orders.amount 
+        FROM orders 
+        WHERE orders.amount > 1000
+    ) 
+    WHERE orders.user_id = users.id
+)
+```

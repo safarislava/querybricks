@@ -1,9 +1,9 @@
 package com.querybricks.table;
 
-public class FakeTable implements Table {
+public class FakeFilterableTable implements FilterableTable {
     private final String name;
 
-    public FakeTable(String name) {
+    public FakeFilterableTable(String name) {
         this.name = name;
     }
 
