@@ -1,6 +1,6 @@
 package com.querybricks.expression;
 
-public class NumberLiteral implements Literal {
+public class NumberLiteral implements Literal<Number> {
     private final Number value;
 
     public NumberLiteral(Number value) {

@@ -1,4 +1,6 @@
 package com.querybricks.expression;
 
-public interface Literal extends Expression {
+import com.querybricks.column.Column;
+
+public interface Literal<T> extends Expression, Column<T> {
 }

@@ -1,6 +1,6 @@
 package com.querybricks.expression;
 
-public class StringLiteral implements Literal {
+public class StringLiteral implements Literal<String> {
     private final String value;
 
     public StringLiteral(String value) {
