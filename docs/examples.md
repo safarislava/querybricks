@@ -87,10 +87,10 @@ var joined = new JoinedTable<>(
     new InnerJoin(new Equals(users.id(), orders.userId()))
 );
 
-var grouped = new GroupedTable<>(joined, joined.left().status());
+var grouped = new GroupedTable<>(joined, new ColumnsSelection(joined.left().status()));
 
 Column<String>     status      = grouped.origin().left().status();
-Column<BigDecimal> totalAmount = new AliasedColumn<>(new Sum<>(grouped.origin().right().amount()), "total_amount");
+Column<BigDecimal> totalAmount = new Sum<>(grouped.origin().right().amount());
 
 Query query = new SelectQuery(
     new ColumnsSelection(status, totalAmount),
@@ -106,7 +106,7 @@ for (Row row : result.list()) {
 
 ### Итоговый SQL
 ```sql
-SELECT users.status, SUM(orders.amount) AS total_amount
+SELECT users.status, SUM(orders.amount)
 FROM users
 JOIN orders ON users.id = orders.user_id
 GROUP BY users.status
