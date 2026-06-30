@@ -2,11 +2,11 @@ package com.querybricks.column;
 
 import com.querybricks.table.Table;
 
-public class TableColumn<T> implements BindedColumn<T> {
+public class TableColumn<T> implements BoundColumn<T> {
     private final Table table;
-    private final UnbindedColumn<T> column;
+    private final UnboundColumn<T> column;
 
-    public TableColumn(Table table, UnbindedColumn<T> column) {
+    public TableColumn(Table table, UnboundColumn<T> column) {
         this.table = table;
         this.column = column;
     }
@@ -17,7 +17,7 @@ public class TableColumn<T> implements BindedColumn<T> {
     }
 
     @Override
-    public UnbindedColumn<T> unbinded() {
+    public UnboundColumn<T> unbound() {
         return this.column;
     }
 }

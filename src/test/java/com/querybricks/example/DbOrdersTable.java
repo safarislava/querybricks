@@ -1,6 +1,6 @@
 package com.querybricks.example;
 
-import com.querybricks.column.BindedColumn;
+import com.querybricks.column.BoundColumn;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
 
@@ -19,12 +19,12 @@ public class DbOrdersTable implements OrdersTable {
     }
 
     @Override
-    public BindedColumn<Long> userId() {
+    public BoundColumn<Long> userId() {
         return new TableColumn<>(this, new RawColumn<>("user_id"));
     }
 
     @Override
-    public BindedColumn<BigDecimal> amount() {
+    public BoundColumn<BigDecimal> amount() {
         return new TableColumn<>(this, new RawColumn<>("amount"));
     }
 }

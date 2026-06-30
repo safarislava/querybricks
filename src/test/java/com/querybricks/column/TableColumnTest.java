@@ -6,7 +6,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 class TableColumnTest {
-    private final BindedColumn<Long> column = new TableColumn<>(
+    private final BoundColumn<Long> column = new TableColumn<>(
         new FakeTable("users"),
         new RawColumn<>("id")
     );
@@ -20,9 +20,9 @@ class TableColumnTest {
     }
 
     @Test
-    void testUnbinded() {
+    void testUnbound() {
         MatcherAssert.assertThat(
-            this.column.unbinded().sql(),
+            this.column.unbound().sql(),
             Matchers.equalTo("id")
         );
     }

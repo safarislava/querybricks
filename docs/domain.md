@@ -194,21 +194,21 @@ classDiagram
     }
     Column ..|> Expression
 
-    class UnbindedColumn~T~ {
+    class UnboundColumn~T~ {
         <<interface>>
     }
-    UnbindedColumn ..|> Column~T~
+    UnboundColumn ..|> Column~T~
 
-    class BindedColumn~T~ {
+    class BoundColumn~T~ {
         <<interface>>
-        +unbinded() UnbindedColumn~T~
+        +unbound() UnboundColumn~T~
     }
-    BindedColumn ..|> Column~T~
+    BoundColumn ..|> Column~T~
 
     class RawColumn~T~ {
         -name String
     }
-    RawColumn ..|> UnbindedColumn~T~
+    RawColumn ..|> UnboundColumn~T~
 
     class Table {
         <<interface>>
@@ -216,10 +216,10 @@ classDiagram
 
     class TableColumn~T~ {
         -table Table
-        -column UnbindedColumn~T~
+        -column UnboundColumn~T~
     }
-    TableColumn ..|> BindedColumn~T~
-    TableColumn --> UnbindedColumn
+    TableColumn ..|> BoundColumn~T~
+    TableColumn --> UnboundColumn
     TableColumn --> Table
 
     class AggregatedColumn~T~ {
@@ -389,7 +389,7 @@ classDiagram
         <<interface>>
     }
 
-    class UnbindedColumn {
+    class UnboundColumn {
         <<interface>>
     }
 
@@ -400,12 +400,12 @@ classDiagram
 
     class InsertQuery {
         -table Table
-        -columns List~UnbindedColumn~
+        -columns List~UnboundColumn~
         -rows List~InsertRow~
     }
     InsertQuery ..|> Query
     InsertQuery --> Table
-    InsertQuery --> UnbindedColumn
+    InsertQuery --> UnboundColumn
     InsertQuery --> InsertRow
 ```
 

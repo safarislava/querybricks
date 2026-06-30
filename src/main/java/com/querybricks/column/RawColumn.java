@@ -1,6 +1,6 @@
 package com.querybricks.column;
 
-public class RawColumn<T> implements UnbindedColumn<T> {
+public class RawColumn<T> implements UnboundColumn<T> {
     private final String name;
 
     public RawColumn(String name) {

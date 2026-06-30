@@ -119,7 +119,7 @@ UsersTable users = new DbUsersTable("users");
 
 Query insert = new InsertQuery(
     users,
-    List.of(users.id().unbinded(), users.username().unbinded(), users.status().unbinded(), users.createdAt().unbinded()),
+    List.of(users.id().unbound(), users.username().unbound(), users.status().unbound(), users.createdAt().unbound()),
     List.of(
         new InsertRow(
             new NumberLiteral(1),
