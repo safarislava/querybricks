@@ -6,7 +6,7 @@
 classDiagram
     class Table {
         <<interface>>
-        + columns() List~Column~
+        + columns() List~BoundColumn~
     }
 
     class FilterableTable {

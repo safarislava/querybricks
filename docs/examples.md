@@ -23,7 +23,7 @@ class DbUsersTable implements UsersTable {
     public BoundColumn<Instant> createdAt() { return new TableColumn<>(this, new RawColumn<>("created_at")); }
 
     @Override
-    public List<Column<?>> columns() {
+    public List<BoundColumn<?>> columns() {
         return List.of(id(), username(), status(), createdAt());
     }
 }
@@ -35,7 +35,7 @@ class DbOrdersTable implements OrdersTable {
     public BoundColumn<BigDecimal> amount() { return new TableColumn<>(this, new RawColumn<>("amount")); }
 
     @Override
-    public List<Column<?>> columns() {
+    public List<BoundColumn<?>> columns() {
         return List.of(userId(), amount());
     }
 }

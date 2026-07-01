@@ -1,10 +1,9 @@
 package com.querybricks.table;
 
 import com.querybricks.QueryPart;
-
-import com.querybricks.column.Column;
+import com.querybricks.column.BoundColumn;
 import java.util.List;
 
 public interface Table extends QueryPart {
-    List<Column<?>> columns();
+    List<BoundColumn<?>> columns();
 }

@@ -1,10 +1,8 @@
 package com.querybricks.example;
 
 import com.querybricks.column.BoundColumn;
-import com.querybricks.column.Column;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -31,7 +29,7 @@ public class DbOrdersTable implements OrdersTable {
     }
 
     @Override
-    public List<Column<?>> columns() {
+    public List<BoundColumn<?>> columns() {
         return java.util.List.of(userId(), amount());
     }
 }

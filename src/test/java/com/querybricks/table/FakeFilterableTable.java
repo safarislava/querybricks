@@ -1,7 +1,6 @@
 package com.querybricks.table;
 
-import com.querybricks.column.Column;
-
+import com.querybricks.column.BoundColumn;
 import java.util.List;
 
 public class FakeFilterableTable implements FilterableTable {
@@ -17,7 +16,7 @@ public class FakeFilterableTable implements FilterableTable {
     }
 
     @Override
-    public List<Column<?>> columns() {
+    public List<BoundColumn<?>> columns() {
         return List.of();
     }
 }

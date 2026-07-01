@@ -1,10 +1,8 @@
 package com.querybricks.example;
 
 import com.querybricks.column.BoundColumn;
-import com.querybricks.column.Column;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
-
 import java.util.List;
 
 public class DbUsersTable implements UsersTable {
@@ -40,7 +38,7 @@ public class DbUsersTable implements UsersTable {
     }
 
     @Override
-    public List<Column<?>> columns() {
+    public List<BoundColumn<?>> columns() {
         return java.util.List.of(id(), username(), status(), createdAt());
     }
 }

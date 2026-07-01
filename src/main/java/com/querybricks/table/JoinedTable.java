@@ -1,7 +1,6 @@
 package com.querybricks.table;
 
-import com.querybricks.column.Column;
-
+import com.querybricks.column.BoundColumn;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +31,8 @@ public final class JoinedTable<L extends Table, R extends Table> implements Bina
     }
 
     @Override
-    public List<Column<?>> columns() {
-        List<Column<?>> columns = new ArrayList<>();
+    public List<BoundColumn<?>> columns() {
+        List<BoundColumn<?>> columns = new ArrayList<>();
         columns.addAll(left.columns());
         columns.addAll(right.columns());
         return columns;
