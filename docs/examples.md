@@ -3,31 +3,41 @@
 
 ```java
 interface UsersTable extends FilterableTable {
-    BindedColumn<Long> id();
-    BindedColumn<String> username();
-    BindedColumn<String> status();
-    BindedColumn<Instant> createdAt();
+    BoundColumn<Long> id();
+    BoundColumn<String> username();
+    BoundColumn<String> status();
+    BoundColumn<Instant> createdAt();
 }
 
 interface OrdersTable extends FilterableTable {
-    BindedColumn<Long> userId();
-    BindedColumn<BigDecimal> amount();
+    BoundColumn<Long> userId();
+    BoundColumn<BigDecimal> amount();
 }
 
 class DbUsersTable implements UsersTable {
     private final String name;
     DbUsersTable(String name) { this.name = name; }
-    public BindedColumn<Long> id()        { return new TableColumn<>(this, new RawColumn<>("id")); }
-    public BindedColumn<String> username()  { return new TableColumn<>(this, new RawColumn<>("username")); }
-    public BindedColumn<String> status()    { return new TableColumn<>(this, new RawColumn<>("status")); }
-    public BindedColumn<Instant> createdAt() { return new TableColumn<>(this, new RawColumn<>("created_at")); }
+    public BoundColumn<Long> id()        { return new TableColumn<>(this, new RawColumn<>("id")); }
+    public BoundColumn<String> username()  { return new TableColumn<>(this, new RawColumn<>("username")); }
+    public BoundColumn<String> status()    { return new TableColumn<>(this, new RawColumn<>("status")); }
+    public BoundColumn<Instant> createdAt() { return new TableColumn<>(this, new RawColumn<>("created_at")); }
+
+    @Override
+    public List<Column<?>> columns() {
+        return List.of(id(), username(), status(), createdAt());
+    }
 }
 
 class DbOrdersTable implements OrdersTable {
     private final String name;
     DbOrdersTable(String name) { this.name = name; }
-    public BindedColumn<Long> userId() { return new TableColumn<>(this, new RawColumn<>("user_id")); }
-    public BindedColumn<BigDecimal> amount() { return new TableColumn<>(this, new RawColumn<>("amount")); }
+    public BoundColumn<Long> userId() { return new TableColumn<>(this, new RawColumn<>("user_id")); }
+    public BoundColumn<BigDecimal> amount() { return new TableColumn<>(this, new RawColumn<>("amount")); }
+
+    @Override
+    public List<Column<?>> columns() {
+        return List.of(userId(), amount());
+    }
 }
 ```
 
@@ -49,17 +59,18 @@ var filtered = new FilteredTable<>(
 
 var limited = new LimitedTable<>(filtered, 10);
 
-Column<Long>       id       = limited.origin().origin().left().id();
-Column<String>     username = limited.origin().origin().left().username();
-Column<BigDecimal> amount   = limited.origin().origin().right().amount();
+BoundColumn<Long>       id       = limited.origin().origin().left().id();
+BoundColumn<String>     username = limited.origin().origin().left().username();
+BoundColumn<BigDecimal> amount   = limited.origin().origin().right().amount();
 
-Query query = new SelectQuery(
+ResultedQuery query = new SelectQuery(
     new ColumnsSelection(id, username, amount),
     limited
 );
 
-Rows result = database.selection(query);
-for (Row row : result.list()) {
+DbPool database = new DataSourcePool(dataSource);
+List<Row> result = database.selection(query);
+for (Row row : result) {
     Long userId = row.value(id);
     String name = row.value(username);
     BigDecimal total = row.value(amount);
@@ -89,16 +100,17 @@ var joined = new JoinedTable<>(
 
 var grouped = new GroupedTable<>(joined, new ColumnsSelection(joined.left().status()));
 
-Column<String>     status      = grouped.origin().left().status();
-Column<BigDecimal> totalAmount = new Sum<>(grouped.origin().right().amount());
+BoundColumn<String> status      = grouped.origin().left().status();
+Column<BigDecimal>  totalAmount = new Sum<>(grouped.origin().right().amount());
 
-Query query = new SelectQuery(
+ResultedQuery query = new SelectQuery(
     new ColumnsSelection(status, totalAmount),
     grouped
 );
 
-Rows result = database.selection(query);
-for (Row row : result.list()) {
+DbPool database = new DataSourcePool(dataSource);
+List<Row> result = database.selection(query);
+for (Row row : result) {
     String userStatus = row.value(status);
     BigDecimal total = row.value(totalAmount);
 }
@@ -130,7 +142,8 @@ Query insert = new InsertQuery(
     )
 );
 
-database.execute(insert.sql());
+DbPool database = new DataSourcePool(dataSource);
+database.execute(insert);
 ```
 
 ### Итоговый SQL
@@ -151,7 +164,8 @@ Query update = new UpdateQuery(
     new Equals(users.id(), new NumberLiteral(1))
 );
 
-database.execute(update.sql());
+DbPool database = new DataSourcePool(dataSource);
+database.execute(update);
 ```
 
 ### Итоговый SQL
@@ -169,7 +183,8 @@ Query delete = new DeleteQuery(
     new Equals(users.id(), new NumberLiteral(1))
 );
 
-database.execute(delete.sql());
+DbPool database = new DataSourcePool(dataSource);
+database.execute(delete);
 ```
 
 ### Итоговый SQL
@@ -201,7 +216,7 @@ Query existsSubquery = new SelectQuery(
     )
 );
 
-Query query = new SelectQuery(
+ResultedQuery query = new SelectQuery(
     new ColumnsSelection(users.username()),
     new FilteredTable<>(
         users,
@@ -209,6 +224,7 @@ Query query = new SelectQuery(
     )
 );
 
+DbPool database = new DataSourcePool(dataSource);
 database.selection(query);
 ```
 

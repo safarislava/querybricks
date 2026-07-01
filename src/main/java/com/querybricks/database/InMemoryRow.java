@@ -1,6 +1,5 @@
 package com.querybricks.database;
 
-import com.querybricks.column.BoundColumn;
 import com.querybricks.column.Column;
 
 import java.sql.ResultSet;
@@ -30,7 +29,7 @@ public class InMemoryRow implements Row {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T value(BoundColumn<T> column) {
+    public <T> T value(Column<T> column) {
         if (!data.containsKey(column.sql())) {
             throw new IllegalArgumentException("Column not found in row: " + column.sql());
         }

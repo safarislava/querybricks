@@ -6,6 +6,7 @@
 classDiagram
     class Table {
         <<interface>>
+        + columns() List~Column~
     }
 
     class FilterableTable {
@@ -474,28 +475,44 @@ classDiagram
         <<interface>>
     }
 
-    class Database {
+    class ResultedQuery {
         <<interface>>
-        + execute(sql) void
-        + query(query) Rows
+        + processColumns(ColumnsProcessor) void
+    }
+    ResultedQuery ..|> Query
+
+    class ColumnsProcessor {
+        <<interface>>
+        + process(Column) void
     }
 
-    class Rows {
+    class DbPool {
         <<interface>>
-        + list() List~Row~
+        + execute(Query) void
+        + selection(ResultedQuery) List~Row~
     }
 
-    class Column~T~ {
+    class DataSourcePool {
+        -source DataSource
+    }
+    DataSourcePool ..|> DbPool
+
+    class BoundColumn~T~ {
         <<interface>>
     }
 
     class Row {
         <<interface>>
-        + value(column) T
+        + value(Column) T
     }
 
-    Database ..> Query
-    Database ..> Rows
-    Rows o-- Row 
+    class InMemoryRow {
+        -data Map~String, Object~
+    }
+    InMemoryRow ..|> Row
+
+    DbPool ..> Query
+    DbPool ..> ResultedQuery
+    DbPool ..> Row
     Row ..> Column
 ```

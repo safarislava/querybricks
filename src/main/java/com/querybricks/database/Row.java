@@ -1,7 +1,7 @@
 package com.querybricks.database;
 
-import com.querybricks.column.BoundColumn;
+import com.querybricks.column.Column;
 
 public interface Row {
-    <T> T value(BoundColumn<T> column);
+    <T> T value(Column<T> column);
 }
