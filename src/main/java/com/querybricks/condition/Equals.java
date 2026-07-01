@@ -1,5 +1,6 @@
 package com.querybricks.condition;
 
+import com.querybricks.Bindings;
 import com.querybricks.QueryPart;
 
 public class Equals implements Condition {
@@ -14,5 +15,10 @@ public class Equals implements Condition {
     @Override
     public String sql() {
         return String.format("%s = %s", this.left.sql(), this.right.sql());
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return this.right.bind(this.left.bind(bindings));
     }
 }
