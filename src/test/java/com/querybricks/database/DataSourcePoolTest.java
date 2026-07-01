@@ -1,5 +1,6 @@
 package com.querybricks.database;
 
+import com.querybricks.Bindings;
 import com.querybricks.column.Column;
 import com.querybricks.column.ColumnsSelection;
 import com.querybricks.column.RawColumn;
@@ -85,6 +86,11 @@ final class DataSourcePoolTest {
                     @Override
                     public String sql() {
                         return "INSERT INTO log VALUES ('test')";
+                    }
+
+                    @Override
+                    public Bindings bind(Bindings bindings) {
+                        return bindings;
                     }
 
                     @Override
