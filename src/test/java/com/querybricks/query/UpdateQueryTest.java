@@ -3,8 +3,7 @@ package com.querybricks.query;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
 import com.querybricks.condition.Equals;
-import com.querybricks.expression.NumberLiteral;
-import com.querybricks.expression.StringLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.table.FakeFilterableTable;
 import com.querybricks.table.Table;
 import org.hamcrest.MatcherAssert;
@@ -24,15 +23,15 @@ final class UpdateQueryTest {
                 List.of(
                     new ColumnAssignment(
                         new TableColumn<>(table, new RawColumn<>("username")),
-                        new StringLiteral("john")
+                        new Parameter<>("john")
                     )
                 ),
                 new Equals(
                     new TableColumn<>(table, new RawColumn<>("id")),
-                    new NumberLiteral(1)
+                    new Parameter<>(1)
                 )
             ).sql(),
-            Matchers.equalTo("UPDATE users SET users.username = 'john' WHERE users.id = 1")
+            Matchers.equalTo("UPDATE users SET users.username = ? WHERE users.id = ?")
         );
     }
 
@@ -44,19 +43,19 @@ final class UpdateQueryTest {
                 List.of(
                     new ColumnAssignment(
                         new TableColumn<>(table, new RawColumn<>("username")),
-                        new StringLiteral("john")
+                        new Parameter<>("john")
                     ),
                     new ColumnAssignment(
                         new TableColumn<>(table, new RawColumn<>("age")),
-                        new NumberLiteral(30)
+                        new Parameter<>(30)
                     )
                 ),
                 new Equals(
                     new TableColumn<>(table, new RawColumn<>("id")),
-                    new NumberLiteral(1)
+                    new Parameter<>(1)
                 )
             ).sql(),
-            Matchers.equalTo("UPDATE users SET users.username = 'john', users.age = 30 WHERE users.id = 1")
+            Matchers.equalTo("UPDATE users SET users.username = ?, users.age = ? WHERE users.id = ?")
         );
     }
 
@@ -70,7 +69,7 @@ final class UpdateQueryTest {
                     List.of(),
                     new Equals(
                         new TableColumn<>(table, new RawColumn<>("id")),
-                        new NumberLiteral(1)
+                        new Parameter<>(1)
                     )
                 ).sql()
             ).getMessage(),

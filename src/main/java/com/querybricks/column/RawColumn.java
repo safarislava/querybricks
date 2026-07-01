@@ -1,5 +1,7 @@
 package com.querybricks.column;
 
+import com.querybricks.Bindings;
+
 public class RawColumn<T> implements UnboundColumn<T> {
     private final String name;
 
@@ -10,5 +12,10 @@ public class RawColumn<T> implements UnboundColumn<T> {
     @Override
     public String sql() {
         return this.name;
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return bindings;
     }
 }

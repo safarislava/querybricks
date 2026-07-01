@@ -2,7 +2,7 @@ package com.querybricks.example;
 
 import com.querybricks.column.ColumnsSelection;
 import com.querybricks.condition.Equals;
-import com.querybricks.expression.StringLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.query.Query;
 import com.querybricks.query.SelectQuery;
 import com.querybricks.table.FilteredTable;
@@ -25,7 +25,7 @@ final class SelectQueryExampleTest {
 
     private final FilteredTable<JoinedTable<UsersTable, OrdersTable>> filtered = new FilteredTable<>(
         this.joined,
-        new Equals(this.joined.left().status(), new StringLiteral("active"))
+        new Equals(this.joined.left().status(), new Parameter<>("active"))
     );
 
     private final LimitedTable<FilteredTable<JoinedTable<UsersTable, OrdersTable>>> limited = new LimitedTable<>(
@@ -49,7 +49,7 @@ final class SelectQueryExampleTest {
             Matchers.equalTo(
                 "SELECT users.id, users.username, orders.amount FROM users "
                 + "INNER JOIN orders ON users.id = orders.user_id "
-                + "WHERE users.status = 'active' LIMIT 10"
+                + "WHERE users.status = ? LIMIT ?"
             )
         );
     }

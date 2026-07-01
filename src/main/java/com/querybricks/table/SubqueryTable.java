@@ -1,5 +1,6 @@
 package com.querybricks.table;
 
+import com.querybricks.Bindings;
 import com.querybricks.query.Query;
 
 public final class SubqueryTable<T extends FilterableTable> implements WrappedTable<T>, FilterableTable {
@@ -19,5 +20,10 @@ public final class SubqueryTable<T extends FilterableTable> implements WrappedTa
     @Override
     public String sql() {
         return String.format("(%s)", this.query.sql());
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return this.query.bind(bindings);
     }
 }

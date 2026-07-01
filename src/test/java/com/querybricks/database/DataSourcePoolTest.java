@@ -1,114 +1,190 @@
 package com.querybricks.database;
 
-import com.querybricks.column.BoundColumn;
+import com.querybricks.Bindings;
+import com.querybricks.column.Column;
 import com.querybricks.column.ColumnsSelection;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
+import com.querybricks.query.Query;
 import com.querybricks.query.ResultedQuery;
 import com.querybricks.query.SelectQuery;
 import com.querybricks.table.FakeFilterableTable;
+import org.h2.jdbcx.JdbcDataSource;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-import javax.sql.DataSource;
-import org.h2.jdbcx.JdbcDataSource;
+import java.util.function.Consumer;
 
 final class DataSourcePoolTest {
     @Test
-    void testSelection() throws Exception {
-        DataSource source = this.createH2DataSource("selection");
-        try (Connection conn = source.getConnection(); Statement stmt = conn.createStatement()) {
-            stmt.execute("CREATE TABLE users (username VARCHAR(255))");
-            stmt.execute("INSERT INTO users VALUES ('john')");
-            try {
-                BoundColumn<String> col = new TableColumn<>(
-                    new FakeFilterableTable("users"),
-                    new RawColumn<>("username")
-                );
-                ResultedQuery query = new SelectQuery(
-                    new ColumnsSelection(col),
+    void testSelection() {
+        MatcherAssert.assertThat(
+            new H2Database(
+                "selection",
+                List.of("CREATE TABLE users (username VARCHAR(255))", "INSERT INTO users VALUES ('john')"),
+                List.of("DROP TABLE users")
+            ).selectionValue(
+                new SelectQuery(
+                    new ColumnsSelection(
+                        new TableColumn<>(
+                            new FakeFilterableTable("users"),
+                            new RawColumn<>("username")
+                        )
+                    ),
                     new FakeFilterableTable("users")
-                );
-
-                List<Row> rows = new DataSourcePool(source).selection(query);
-                MatcherAssert.assertThat(
-                    rows.getFirst().value(col),
-                    Matchers.equalTo("john")
-                );
-            } finally {
-                stmt.execute("DROP TABLE users");
-            }
-        }
+                ),
+                new TableColumn<>(new FakeFilterableTable("users"), new RawColumn<>("username"))
+            ),
+            Matchers.equalTo("john")
+        );
     }
 
     @Test
-    void testSelectionWithDuplicateColumns() throws Exception {
-        DataSource source = this.createH2DataSource("duplicates");
-        try (Connection conn = source.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("CREATE TABLE t1 (id VARCHAR(255))");
-            stmt.execute("CREATE TABLE t2 (id VARCHAR(255))");
-            stmt.execute("INSERT INTO t1 VALUES ('first')");
-            stmt.execute("INSERT INTO t2 VALUES ('second')");
-            try {
-                TableColumn<String> col1 = new TableColumn<>(new FakeFilterableTable("t1"), new RawColumn<>("id"));
-                TableColumn<String> col2 = new TableColumn<>(new FakeFilterableTable("t2"), new RawColumn<>("id"));
-                ResultedQuery query = new SelectQuery(
-                    new ColumnsSelection(col1, col2),
+    void testSelectionWithDuplicateColumns() {
+        MatcherAssert.assertThat(
+            new H2Database(
+                "duplicates",
+                List.of(
+                    "CREATE TABLE t1 (id VARCHAR(255))",
+                    "CREATE TABLE t2 (id VARCHAR(255))",
+                    "INSERT INTO t1 VALUES ('first')",
+                    "INSERT INTO t2 VALUES ('second')"
+                ),
+                List.of("DROP TABLE t1", "DROP TABLE t2")
+            ).selectionValues(
+                new SelectQuery(
+                    new ColumnsSelection(
+                        new TableColumn<>(new FakeFilterableTable("t1"), new RawColumn<>("id")),
+                        new TableColumn<>(new FakeFilterableTable("t2"), new RawColumn<>("id"))
+                    ),
                     new FakeFilterableTable("t1 JOIN t2 ON 1=1")
-                );
-
-                List<Row> rows = new DataSourcePool(source).selection(query);
-                MatcherAssert.assertThat(
-                    List.of(rows.getFirst().value(col1), rows.getFirst().value(col2)),
-                    Matchers.equalTo(List.of("first", "second"))
-                );
-            } finally {
-                stmt.execute("DROP TABLE t1");
-                stmt.execute("DROP TABLE t2");
-            }
-        }
+                ),
+                List.of(
+                    new TableColumn<>(new FakeFilterableTable("t1"), new RawColumn<>("id")),
+                    new TableColumn<>(new FakeFilterableTable("t2"), new RawColumn<>("id"))
+                )
+            ),
+            Matchers.equalTo(List.of("first", "second"))
+        );
     }
 
     @Test
-    void testExecute() throws Exception {
-        DataSource source = this.createH2DataSource("execute");
-        try (Connection conn = source.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("CREATE TABLE log (message VARCHAR(255))");
-            try {
-                new DataSourcePool(source).execute(new com.querybricks.query.ResultedQuery() {
+    void testExecute() {
+        MatcherAssert.assertThat(
+            new H2Database(
+                "execute",
+                List.of("CREATE TABLE log (message VARCHAR(255))"),
+                List.of("DROP TABLE log")
+            ).executeAndGet(
+                new ResultedQuery() {
                     @Override
                     public String sql() {
                         return "INSERT INTO log VALUES ('test')";
                     }
 
                     @Override
-                    public void processColumns(com.querybricks.column.ColumnsProcessor consumer) {
+                    public Bindings bind(Bindings bindings) {
+                        return bindings;
                     }
-                });
-                try (ResultSet rs = stmt.executeQuery("SELECT message FROM log")) {
-                    rs.next();
-                    MatcherAssert.assertThat(
-                        rs.getString(1),
-                        Matchers.equalTo("test")
-                    );
-                }
-            } finally {
-                stmt.execute("DROP TABLE log");
-            }
-        }
+
+                    @Override
+                    public void processColumns(Consumer<Column<?>> consumer) {
+                    }
+                },
+                "SELECT message FROM log"
+            ),
+            Matchers.equalTo("test")
+        );
     }
 
-    private DataSource createH2DataSource(String dbName) {
-        JdbcDataSource source = new JdbcDataSource();
-        source.setUrl("jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1");
-        source.setUser("sa");
-        source.setPassword("");
-        return source;
+    private static final class H2Database {
+        private final String dbName;
+        private final List<String> setups;
+        private final List<String> teardowns;
+
+        H2Database(String dbName, List<String> setups, List<String> teardowns) {
+            this.dbName = dbName;
+            this.setups = setups;
+            this.teardowns = teardowns;
+        }
+
+        public <T> T selectionValue(ResultedQuery query, Column<T> column) {
+            JdbcDataSource source = new JdbcDataSource();
+            source.setUrl("jdbc:h2:mem:" + this.dbName + ";DB_CLOSE_DELAY=-1");
+            source.setUser("sa");
+            source.setPassword("");
+            try (Connection conn = source.getConnection(); Statement stmt = conn.createStatement()) {
+                for (String sql : this.setups) {
+                    stmt.execute(sql);
+                }
+                try {
+                    return new DataSourcePool(source).selection(query).getFirst().value(column);
+                } finally {
+                    for (String sql : this.teardowns) {
+                        stmt.execute(sql);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        public List<Object> selectionValues(ResultedQuery query, List<Column<?>> columns) {
+            JdbcDataSource source = new JdbcDataSource();
+            source.setUrl("jdbc:h2:mem:" + this.dbName + ";DB_CLOSE_DELAY=-1");
+            source.setUser("sa");
+            source.setPassword("");
+            try (Connection conn = source.getConnection(); Statement stmt = conn.createStatement()) {
+                for (String sql : this.setups) {
+                    stmt.execute(sql);
+                }
+                try {
+                    Row row = new DataSourcePool(source).selection(query).getFirst();
+                    List<Object> values = new ArrayList<>();
+                    for (Column<?> col : columns) {
+                        values.add(row.value(col));
+                    }
+                    return values;
+                } finally {
+                    for (String sql : this.teardowns) {
+                        stmt.execute(sql);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @SuppressWarnings("SqlSourceToSinkFlow")
+        public String executeAndGet(Query query, String checkSql) {
+            JdbcDataSource source = new JdbcDataSource();
+            source.setUrl("jdbc:h2:mem:" + this.dbName + ";DB_CLOSE_DELAY=-1");
+            source.setUser("sa");
+            source.setPassword("");
+            try (Connection conn = source.getConnection(); Statement stmt = conn.createStatement()) {
+                for (String sql : this.setups) {
+                    stmt.execute(sql);
+                }
+                try {
+                    new DataSourcePool(source).execute(query);
+                    try (ResultSet rs = stmt.executeQuery(checkSql)) {
+                        rs.next();
+                        return rs.getString(1);
+                    }
+                } finally {
+                    for (String sql : this.teardowns) {
+                        stmt.execute(sql);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 }

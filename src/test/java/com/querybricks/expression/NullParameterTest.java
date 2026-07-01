@@ -4,13 +4,11 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-final class NullLiteralTest {
-    private final Literal literal = new NullLiteral();
-
+final class NullParameterTest {
     @Test
     void testSql() {
         MatcherAssert.assertThat(
-            this.literal.sql(),
+            new NullParameter().sql(),
             Matchers.equalTo("NULL")
         );
     }

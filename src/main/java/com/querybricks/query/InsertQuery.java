@@ -1,5 +1,6 @@
 package com.querybricks.query;
 
+import com.querybricks.Bindings;
 import com.querybricks.QueryPart;
 import com.querybricks.column.UnboundColumn;
 import com.querybricks.table.Table;
@@ -31,5 +32,14 @@ public class InsertQuery implements Query {
             columns.stream().map(QueryPart::sql).collect(Collectors.joining(", ")),
             rows.stream().map(InsertRow::sql).collect(Collectors.joining(", "))
         );
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        Bindings current = this.table.bind(bindings);
+        for (InsertRow row : this.rows) {
+            current = row.bind(current);
+        }
+        return current;
     }
 }

@@ -1,5 +1,6 @@
 package com.querybricks.table;
 
+import com.querybricks.Bindings;
 import com.querybricks.condition.Condition;
 
 public class FilteredTable<T extends FilterableTable> implements WrappedTable<T> {
@@ -19,5 +20,10 @@ public class FilteredTable<T extends FilterableTable> implements WrappedTable<T>
     @Override
     public String sql() {
         return String.format("%s WHERE %s", table.sql(), condition.sql());
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return this.condition.bind(this.table.bind(bindings));
     }
 }

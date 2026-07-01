@@ -1,5 +1,6 @@
 package com.querybricks.table;
 
+import com.querybricks.Bindings;
 import com.querybricks.condition.Condition;
 
 public final class InnerJoin implements JoinRule {
@@ -12,5 +13,10 @@ public final class InnerJoin implements JoinRule {
     @Override
     public String sql(Table right) {
         return String.format("INNER JOIN %s ON %s", right.sql(), this.condition.sql());
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings, Table right) {
+        return this.condition.bind(right.bind(bindings));
     }
 }

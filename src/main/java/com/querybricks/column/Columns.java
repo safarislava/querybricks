@@ -1,7 +1,8 @@
 package com.querybricks.column;
 
 import com.querybricks.QueryPart;
+import java.util.function.Consumer;
 
 public interface Columns extends QueryPart {
-    void processAll(ColumnsProcessor consumer);
+    void processAll(Consumer<Column<?>> consumer);
 }

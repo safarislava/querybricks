@@ -5,9 +5,9 @@ import com.querybricks.query.Query;
 import com.querybricks.query.ResultedQuery;
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +22,10 @@ public class DataSourcePool implements DbPool {
     @SuppressWarnings("SqlSourceToSinkFlow")
     public void execute(Query query) {
         String sql = query.sql();
-        try {
-            Connection connection = this.source.getConnection();
-            Statement statement = connection.createStatement();
-            statement.execute(sql);
+        try (Connection connection = this.source.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            query.bind(new JdbcBindings(statement));
+            statement.execute();
         } catch (SQLException e) {
             throw new IllegalStateException("Execution failed: " + sql, e);
         }
@@ -38,15 +38,16 @@ public class DataSourcePool implements DbPool {
         query.processColumns(columns::add);
 
         String sql = query.sql();
-        try {
-            Connection connection = this.source.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            List<Row> rows = new ArrayList<>();
-            while (resultSet.next()) {
-                rows.add(new InMemoryRow(columns, resultSet));
+        try (Connection connection = this.source.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            query.bind(new JdbcBindings(statement));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Row> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    rows.add(new InMemoryRow(columns, resultSet));
+                }
+                return rows;
             }
-            return rows;
         } catch (SQLException e) {
             throw new IllegalStateException("Query failed: " + sql, e);
         }

@@ -1,5 +1,6 @@
 package com.querybricks.query;
 
+import com.querybricks.Bindings;
 import com.querybricks.QueryPart;
 import com.querybricks.condition.Condition;
 import com.querybricks.table.Table;
@@ -28,5 +29,14 @@ public class UpdateQuery implements Query {
             this.assignments.stream().map(QueryPart::sql).collect(Collectors.joining(", ")),
             this.condition.sql()
         );
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        Bindings current = this.table.bind(bindings);
+        for (ColumnAssignment assignment : this.assignments) {
+            current = assignment.bind(current);
+        }
+        return this.condition.bind(current);
     }
 }

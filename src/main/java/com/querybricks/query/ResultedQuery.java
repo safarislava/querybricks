@@ -1,7 +1,8 @@
 package com.querybricks.query;
 
-import com.querybricks.column.ColumnsProcessor;
+import com.querybricks.column.Column;
+import java.util.function.Consumer;
 
 public interface ResultedQuery extends Query {
-    void processColumns(ColumnsProcessor consumer);
+    void processColumns(Consumer<Column<?>> consumer);
 }

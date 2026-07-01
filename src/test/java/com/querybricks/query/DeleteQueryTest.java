@@ -3,7 +3,7 @@ package com.querybricks.query;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
 import com.querybricks.condition.Equals;
-import com.querybricks.expression.NumberLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.table.FakeFilterableTable;
 import com.querybricks.table.Table;
 import org.hamcrest.MatcherAssert;
@@ -19,10 +19,10 @@ final class DeleteQueryTest {
                 table,
                 new Equals(
                     new TableColumn<>(table, new RawColumn<>("id")),
-                    new NumberLiteral(1)
+                    new Parameter<>(1)
                 )
             ).sql(),
-            Matchers.equalTo("DELETE FROM users WHERE users.id = 1")
+            Matchers.equalTo("DELETE FROM users WHERE users.id = ?")
         );
     }
 }

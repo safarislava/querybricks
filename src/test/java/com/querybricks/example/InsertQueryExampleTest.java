@@ -1,8 +1,7 @@
 package com.querybricks.example;
 
 import com.querybricks.expression.Now;
-import com.querybricks.expression.NumberLiteral;
-import com.querybricks.expression.StringLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.query.InsertQuery;
 import com.querybricks.query.InsertRow;
 import com.querybricks.query.Query;
@@ -24,9 +23,9 @@ final class InsertQueryExampleTest {
         ),
         List.of(
             new InsertRow(
-                new NumberLiteral(1),
-                new StringLiteral("john"),
-                new StringLiteral("active"),
+                new Parameter<>(1),
+                new Parameter<>("john"),
+                new Parameter<>("active"),
                 new Now()
             )
         )
@@ -36,7 +35,7 @@ final class InsertQueryExampleTest {
     void testSql() {
         MatcherAssert.assertThat(
             this.query.sql(),
-            Matchers.equalTo("INSERT INTO users (id, username, status, created_at) VALUES (1, 'john', 'active', NOW())")
+            Matchers.equalTo("INSERT INTO users (id, username, status, created_at) VALUES (?, ?, ?, NOW())")
         );
     }
 }

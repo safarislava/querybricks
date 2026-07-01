@@ -2,8 +2,7 @@ package com.querybricks.query;
 
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
-import com.querybricks.expression.NumberLiteral;
-import com.querybricks.expression.StringLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.table.FakeFilterableTable;
 import com.querybricks.table.Table;
 import org.hamcrest.MatcherAssert;
@@ -25,14 +24,14 @@ final class InsertQueryTest {
             ),
             List.of(
                 new InsertRow(
-                    new NumberLiteral(1),
-                    new StringLiteral("john")
+                    new Parameter<>(1),
+                    new Parameter<>("john")
                 )
             )
         );
         MatcherAssert.assertThat(
             query.sql(),
-            Matchers.equalTo("INSERT INTO users (id, username) VALUES (1, 'john')")
+            Matchers.equalTo("INSERT INTO users (id, username) VALUES (?, ?)")
         );
     }
 
@@ -43,8 +42,8 @@ final class InsertQueryTest {
             List.of(),
             List.of(
                 new InsertRow(
-                    new NumberLiteral(1),
-                    new StringLiteral("john")
+                    new Parameter<>(1),
+                    new Parameter<>("john")
                 )
             )
         );

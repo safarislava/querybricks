@@ -1,5 +1,7 @@
 package com.querybricks.table;
 
+import com.querybricks.Bindings;
+
 public final class OffsetTable<T extends Table> implements WrappedTable<T> {
     private final T table;
     private final int offset;
@@ -16,6 +18,11 @@ public final class OffsetTable<T extends Table> implements WrappedTable<T> {
 
     @Override
     public String sql() {
-        return String.format("%s OFFSET %d", this.table.sql(), this.offset);
+        return String.format("%s OFFSET ?", this.table.sql());
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return this.table.bind(bindings).with(this.offset);
     }
 }

@@ -4,7 +4,7 @@ import com.querybricks.column.ColumnsSelection;
 import com.querybricks.condition.Equals;
 import com.querybricks.condition.Exists;
 import com.querybricks.condition.GreaterThan;
-import com.querybricks.expression.NumberLiteral;
+import com.querybricks.expression.Parameter;
 import com.querybricks.query.Query;
 import com.querybricks.query.SelectQuery;
 import com.querybricks.table.FilteredTable;
@@ -21,7 +21,7 @@ final class ExistsQueryExampleTest {
         new ColumnsSelection(this.orders.userId(), this.orders.amount()),
         new FilteredTable<>(
             this.orders,
-            new GreaterThan(this.orders.amount(), new NumberLiteral(1000))
+            new GreaterThan(this.orders.amount(), new Parameter<>(1000))
         )
     );
 
@@ -31,7 +31,7 @@ final class ExistsQueryExampleTest {
     );
 
     private final Query existsSubquery = new SelectQuery(
-        new ColumnsSelection(new NumberLiteral(1)),
+        new ColumnsSelection(new Parameter<>(1)),
         new FilteredTable<>(
             this.subquery,
             new Equals(this.subquery.origin().userId(), this.users.id())
@@ -53,9 +53,9 @@ final class ExistsQueryExampleTest {
             Matchers.equalTo(
                 "SELECT users.username FROM users "
                 + "WHERE EXISTS ("
-                +    "SELECT 1 FROM ("
+                +    "SELECT ? FROM ("
                 +        "SELECT orders.user_id, orders.amount FROM orders "
-                +        "WHERE orders.amount > 1000"
+                +        "WHERE orders.amount > ?"
                 +    ") "
                 +    "WHERE orders.user_id = users.id"
                 + ")")

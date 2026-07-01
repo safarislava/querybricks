@@ -1,5 +1,8 @@
 package com.querybricks.column;
 
+import com.querybricks.Bindings;
+import java.util.function.Consumer;
+
 public final class FakeColumns implements Columns {
     private final String columns;
 
@@ -13,6 +16,11 @@ public final class FakeColumns implements Columns {
     }
 
     @Override
-    public void processAll(ColumnsProcessor consumer) {
+    public Bindings bind(Bindings bindings) {
+        return bindings;
+    }
+
+    @Override
+    public void processAll(Consumer<Column<?>> consumer) {
     }
 }

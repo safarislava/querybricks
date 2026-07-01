@@ -45,6 +45,7 @@ classDiagram
     class JoinRule {
         <<interface>>
         + sql(Table) String
+        + bind(Bindings, Table) Bindings
     }
     
     class Condition {
@@ -263,6 +264,7 @@ classDiagram
     class QueryPart {
         <<interface>>
         + sql() String
+        + bind(Bindings) Bindings
     }
 
     class Table {
@@ -300,28 +302,13 @@ classDiagram
         <<interface>>
     }
 
-    class Literal {
-        <<interface>>
+    class Parameter~T~ {
+        -value T
     }
-    Literal ..|> Expression
+    Parameter ..|> Expression
 
-    class StringLiteral {
-        -value String
-    }
-    StringLiteral ..|> Literal
-
-    class NumberLiteral {
-        -value Number
-    }
-    NumberLiteral ..|> Literal
-
-    class BooleanLiteral {
-        -value boolean
-    }
-    BooleanLiteral ..|> Literal
-
-    class NullLiteral
-    NullLiteral ..|> Literal
+    class NullParameter
+    NullParameter ..|> Expression
 
     class Function {
         <<interface>>
@@ -477,13 +464,13 @@ classDiagram
 
     class ResultedQuery {
         <<interface>>
-        + processColumns(ColumnsProcessor) void
+        + processColumns(Consumer~Column~) void
     }
     ResultedQuery ..|> Query
 
-    class ColumnsProcessor {
+    class Consumer {
         <<interface>>
-        + process(Column) void
+        + accept(Column) void
     }
 
     class DbPool {

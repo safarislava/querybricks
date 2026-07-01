@@ -14,7 +14,7 @@ final class OffsetTableTest {
     void testSql() {
         MatcherAssert.assertThat(
             table.sql(),
-            Matchers.equalTo("users OFFSET 20")
+            Matchers.equalTo("users OFFSET ?")
         );
     }
 

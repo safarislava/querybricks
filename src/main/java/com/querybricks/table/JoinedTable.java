@@ -1,5 +1,6 @@
 package com.querybricks.table;
 
+import com.querybricks.Bindings;
 import com.querybricks.column.BoundColumn;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,11 @@ public final class JoinedTable<L extends Table, R extends Table> implements Bina
     @Override
     public String sql() {
         return String.format("%s %s", left.sql(), joinRule.sql(right));
+    }
+
+    @Override
+    public Bindings bind(Bindings bindings) {
+        return this.joinRule.bind(this.left.bind(bindings), this.right);
     }
 
     @Override

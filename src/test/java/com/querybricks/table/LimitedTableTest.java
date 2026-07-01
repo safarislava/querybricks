@@ -14,7 +14,7 @@ final class LimitedTableTest {
     void testSql() {
         MatcherAssert.assertThat(
             table.sql(),
-            Matchers.equalTo("users LIMIT 10")
+            Matchers.equalTo("users LIMIT ?")
         );
     }
 

@@ -54,7 +54,7 @@ var joined = new JoinedTable<>(
 
 var filtered = new FilteredTable<>(
     joined,
-    new Equals(joined.left().status(), new StringLiteral("active"))
+    new Equals(joined.left().status(), new Parameter<>("active"))
 );
 
 var limited = new LimitedTable<>(filtered, 10);
@@ -79,11 +79,7 @@ for (Row row : result) {
 
 ### Итоговый SQL
 ```sql
-SELECT users.id, users.username, orders.amount AS total
-FROM users
-JOIN orders ON users.id = orders.user_id
-WHERE users.status = 'active'
-LIMIT 10
+SELECT users.id, users.username, orders.amount FROM users INNER JOIN orders ON users.id = orders.user_id WHERE users.status = ? LIMIT ?
 ```
 
 ## Запрос SELECT c агрегирующей функцией
@@ -118,10 +114,7 @@ for (Row row : result) {
 
 ### Итоговый SQL
 ```sql
-SELECT users.status, SUM(orders.amount)
-FROM users
-JOIN orders ON users.id = orders.user_id
-GROUP BY users.status
+SELECT users.status, SUM(orders.amount) FROM users INNER JOIN orders ON users.id = orders.user_id GROUP BY users.status
 ```
 
 ## Запрос INSERT
@@ -134,9 +127,9 @@ Query insert = new InsertQuery(
     List.of(users.id().unbound(), users.username().unbound(), users.status().unbound(), users.createdAt().unbound()),
     List.of(
         new InsertRow(
-            new NumberLiteral(1),
-            new StringLiteral("john"),
-            new StringLiteral("active"),
+            new Parameter<>(1),
+            new Parameter<>("john"),
+            new Parameter<>("active"),
             new Now()
         )
     )
@@ -148,7 +141,7 @@ database.execute(insert);
 
 ### Итоговый SQL
 ```sql
-INSERT INTO users (id, username, status, created_at) VALUES (1, 'john', 'active', NOW())
+INSERT INTO users (id, username, status, created_at) VALUES (?, ?, ?, NOW())
 ```
 
 ## Запрос UPDATE
@@ -159,9 +152,9 @@ UsersTable users = new DbUsersTable("users");
 Query update = new UpdateQuery(
     users,
     List.of(
-        new ColumnAssignment(users.status(), new StringLiteral("inactive"))
+        new ColumnAssignment(users.status(), new Parameter<>("inactive"))
     ),
-    new Equals(users.id(), new NumberLiteral(1))
+    new Equals(users.id(), new Parameter<>(1))
 );
 
 DbPool database = new DataSourcePool(dataSource);
@@ -170,7 +163,7 @@ database.execute(update);
 
 ### Итоговый SQL
 ```sql
-UPDATE users SET status = 'inactive' WHERE id = 1
+UPDATE users SET status = ? WHERE id = ?
 ```
 
 ## Запрос DELETE
@@ -180,7 +173,7 @@ UsersTable users = new DbUsersTable("users");
 
 Query delete = new DeleteQuery(
     users,
-    new Equals(users.id(), new NumberLiteral(1))
+    new Equals(users.id(), new Parameter<>(1))
 );
 
 DbPool database = new DataSourcePool(dataSource);
@@ -189,7 +182,7 @@ database.execute(delete);
 
 ### Итоговый SQL
 ```sql
-DELETE FROM users WHERE id = 1
+DELETE FROM users WHERE id = ?
 ```
 
 ## Подзапросы
@@ -202,14 +195,14 @@ Query filteredQuery = new SelectQuery(
     new ColumnsSelection(orders.userId(), orders.amount()),
     new FilteredTable<>(
         orders,
-        new GreaterThan(orders.amount(), new NumberLiteral(1000))
+        new GreaterThan(orders.amount(), new Parameter<>(1000))
     )
 );
 
 SubqueryTable<OrdersTable> subquery = new SubqueryTable<>(orders, filteredQuery);
 
 Query existsSubquery = new SelectQuery(
-    new ColumnsSelection(new NumberLiteral(1)),
+    new ColumnsSelection(new Parameter<>(1)),
     new FilteredTable<>(
         subquery,
         new Equals(subquery.origin().userId(), users.id())
@@ -230,15 +223,62 @@ database.selection(query);
 
 ### Итоговый SQL
 ```sql
-SELECT username 
-FROM users 
-WHERE EXISTS (
-    SELECT 1 
-    FROM (
-        SELECT orders.user_id, orders.amount 
-        FROM orders 
-        WHERE orders.amount > 1000
-    ) 
-    WHERE orders.user_id = users.id
-)
+SELECT username FROM users WHERE EXISTS (SELECT ? FROM (SELECT orders.user_id, orders.amount FROM orders WHERE orders.amount > ?) WHERE orders.user_id = users.id)
+```
+
+## Выполнение запросов
+
+```java
+import com.querybricks.database.DbPool;
+import com.querybricks.database.DataSourcePool;
+import org.h2.jdbcx.JdbcDataSource;
+
+JdbcDataSource dataSource = new JdbcDataSource();
+dataSource.setUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
+dataSource.setUser("sa");
+dataSource.setPassword("");
+
+DbPool database = new DataSourcePool(dataSource);
+```
+
+### Выполнение запросов на чтение
+
+```java
+ResultedQuery select = new SelectQuery(
+    new ColumnsSelection(users.id(), users.username()),
+    users
+);
+
+List<Row> rows = database.selection(select);
+for (Row row : rows) {
+    Long id = row.value(users.id());
+    String name = row.value(users.username());
+    System.out.println("User: " + id + " - " + name);
+}
+```
+
+### Выполнение запросов на изменение 
+
+Для изменения данных используется метод `execute()`, принимающий обычный `Query`:
+
+```java
+Query insert = new InsertQuery(
+    users,
+    List.of(users.username().unbound()),
+    List.of(new InsertRow(new Parameter<>("alice")))
+);
+database.execute(insert);
+
+Query update = new UpdateQuery(
+    users,
+    List.of(new ColumnAssignment(users.status(), new Parameter<>("active"))),
+    new Equals(users.username(), new Parameter<>("alice"))
+);
+database.execute(update);
+
+Query delete = new DeleteQuery(
+    users,
+    new Equals(users.username(), new Parameter<>("alice"))
+);
+database.execute(delete);
 ```
