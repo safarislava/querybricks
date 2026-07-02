@@ -7,11 +7,21 @@ import com.querybricks.table.Table;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an INSERT SQL query that inserts one or more rows into a table.
+ */
 public class InsertQuery implements Query {
     private final Table table;
     private final List<UnboundColumn<?>> columns;
     private final List<InsertRow> rows;
 
+    /**
+     * Constructs an insert query.
+     *
+     * @param table the table to insert rows into
+     * @param columns the columns to be populated with values
+     * @param rows the list of rows (values) to insert
+     */
     public InsertQuery(Table table, List<UnboundColumn<?>> columns, List<InsertRow> rows) {
         this.table = table;
         this.columns = columns;

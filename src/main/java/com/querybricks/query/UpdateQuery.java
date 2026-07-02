@@ -7,11 +7,21 @@ import com.querybricks.table.Table;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an UPDATE SQL query that modifies existing rows in a database table.
+ */
 public class UpdateQuery implements Query {
     private final Table table;
     private final List<ColumnAssignment> assignments;
     private final Condition condition;
 
+    /**
+     * Constructs an update query.
+     *
+     * @param table the table to update
+     * @param assignments the list of column assignments to perform
+     * @param condition the condition that determines which rows to update
+     */
     public UpdateQuery(Table table, List<ColumnAssignment> assignments, Condition condition) {
         this.table = table;
         this.assignments = List.copyOf(assignments);
