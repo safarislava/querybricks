@@ -7,5 +7,6 @@ import com.querybricks.QueryPart;
  *
  * @param <T> the Java type representing the value type of the column
  */
+@SuppressWarnings("unused")
 public interface Column<T> extends QueryPart {
 }
