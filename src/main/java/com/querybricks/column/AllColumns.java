@@ -4,9 +4,17 @@ import com.querybricks.Bindings;
 import com.querybricks.table.Table;
 import java.util.function.Consumer;
 
+/**
+ * Represents the wildcard selection of all columns (e.g., "*") from a table.
+ */
 public class AllColumns implements Columns {
     private final Table table;
 
+    /**
+     * Constructs an AllColumns selection for the specified table.
+     *
+     * @param table the table whose columns are selected
+     */
     public AllColumns(Table table) {
         this.table = table;
     }
