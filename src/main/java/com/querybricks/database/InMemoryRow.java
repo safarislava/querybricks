@@ -8,13 +8,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * An in-memory implementation of the {@link Row} interface,
+ * backing the column values with a map.
+ */
 public class InMemoryRow implements Row {
     private final Map<String, Object> data;
 
+    /**
+     * Constructs an in-memory row with the provided data map.
+     *
+     * @param map a map containing column names as keys and column values as values
+     */
     public InMemoryRow(Map<String, Object> map) {
         data = Map.copyOf(map);
     }
 
+    /**
+     * Constructs an in-memory row from a SQL query result set.
+     *
+     * @param columns the list of columns expected in the row
+     * @param resultSet the result set to read values from
+     */
     public InMemoryRow(List<Column<?>> columns, ResultSet resultSet) {
         Map<String, Object> map = new HashMap<>();
         for (int i = 0; i < columns.size(); i++) {

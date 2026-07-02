@@ -11,9 +11,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A connection pool implementation that wraps a JDBC {@link DataSource}
+ * to execute queries and retrieve rows.
+ */
 public class DataSourcePool implements DbPool {
     private final DataSource source;
 
+    /**
+     * Constructs a DataSourcePool backed by the specified DataSource.
+     *
+     * @param source the data source used to acquire connections
+     */
     public DataSourcePool(DataSource source) {
         this.source = source;
     }
