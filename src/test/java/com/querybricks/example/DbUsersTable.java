@@ -3,6 +3,8 @@ package com.querybricks.example;
 import com.querybricks.column.BoundColumn;
 import com.querybricks.column.RawColumn;
 import com.querybricks.column.TableColumn;
+
+import java.time.Instant;
 import java.util.List;
 
 public final class DbUsersTable implements UsersTable {
@@ -33,7 +35,7 @@ public final class DbUsersTable implements UsersTable {
     }
 
     @Override
-    public BoundColumn<java.time.Instant> createdAt() {
+    public BoundColumn<Instant> createdAt() {
         return new TableColumn<>(this, new RawColumn<>("created_at"));
     }
 
